@@ -21,30 +21,30 @@ class redirectME {
     }
 
     public function maybe_redirect() {
-        if (is_admin() || is_user_logged_in()) {
-            return;
-        }
+    if (is_admin() || is_user_logged_in()) return;
 
-        $settings = get_option($this->option_name);
+    $settings = get_option($this->option_name);
 
-        $redirect_url = isset($settings['redirect_url']) ? esc_url($settings['redirect_url']) : '';
-        $timeout_value = isset($settings['timeout_value']) ? intval($settings['timeout_value']) : 60;
-        $timeout_unit = isset($settings['timeout_unit']) ? sanitize_text_field($settings['timeout_unit']) : 'minutes';
-        $only_homepage = isset($settings['only_homepage']) ? boolval($settings['only_homepage']) : false;
+    $redirect_url = isset($settings['redirect_url']) ? esc_url($settings['redirect_url']) : '';
+    $timeout_value = isset($settings['timeout_value']) ? intval($settings['timeout_value']) : 60;
+    $timeout_unit = isset($settings['timeout_unit']) ? sanitize_text_field($settings['timeout_unit']) : 'minutes';
+    $only_homepage = isset($settings['only_homepage']) ? boolval($settings['only_homepage']) : false;
 
-        if (empty($redirect_url)) return;
+    if (empty($redirect_url)) return;
 
-        if ($only_homepage && !(is_front_page() || is_home())) {
-            return;
-        }
+    if ($only_homepage && !(is_front_page() || is_home())) return;
 
-        if (!isset($_COOKIE['fvr_redirected'])) {
-            $timeout_seconds = $this->convert_to_seconds($timeout_value, $timeout_unit);
-            setcookie('fvr_redirected', '1', time() + $timeout_seconds, COOKIEPATH, COOKIE_DOMAIN);
-            wp_redirect($redirect_url);
-            exit;
-        }
+    if (!isset($_COOKIE['fvr_redirected'])) {
+        $timeout_seconds = $this->convert_to_seconds($timeout_value, $timeout_unit);
+        setcookie('fvr_redirected', '1', time() + $timeout_seconds, '/', COOKIE_DOMAIN);
+        
+        // Hindari output apapun sebelum ini
+        nocache_headers(); // Pastikan header tidak di-cache
+        wp_safe_redirect($redirect_url, 302); // lebih aman
+        exit; // wajib, agar tidak render page lebih dulu
     }
+}
+
 
     private function convert_to_seconds($value, $unit) {
         switch ($unit) {
